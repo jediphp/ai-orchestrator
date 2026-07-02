@@ -218,6 +218,7 @@ HOST=0.0.0.0
 REPO_URL=https://github.com/your-org/your-repo.git
 WORKSPACE_BASE_PATH=/tmp/remote-dev-agent
 GITHUB_TOKEN=replace_with_github_pat
+CODEX_TASK_TIMEOUT_MS=1800000
 ```
 
 | Переменная            | Обязательна | По умолчанию              | Описание                         |
@@ -228,6 +229,7 @@ GITHUB_TOKEN=replace_with_github_pat
 | `REPO_URL`            | да          | —                         | GitHub repo для Worker           |
 | `GITHUB_TOKEN`        | да          | —                         | PAT для `git push` и `gh pr`     |
 | `WORKSPACE_BASE_PATH` | нет         | `/tmp/remote-dev-agent`   | Базовая папка для clone          |
+| `CODEX_TASK_TIMEOUT_MS` | нет       | `1800000`                 | Timeout основного `codex exec` в миллисекундах |
 | `PORT`                | нет         | `3000`                    | Порт Orchestrator API            |
 | `HOST`                | нет         | `0.0.0.0`                 | Адрес прослушивания Orchestrator |
 

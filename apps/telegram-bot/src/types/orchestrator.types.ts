@@ -10,6 +10,7 @@ export interface CreateTaskResponse {
 export type TaskStatus =
   | "running"
   | "awaiting_approval"
+  | "publishing"
   | "approved"
   | "rejected"
   | "failed";

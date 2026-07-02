@@ -10,6 +10,7 @@ export interface CreateTaskResult {
 export type TaskStatus =
   | "running"
   | "awaiting_approval"
+  | "publishing"
   | "approved"
   | "rejected"
   | "failed";
@@ -32,6 +33,10 @@ export interface TaskStore {
   get(taskId: string): TaskRecord | undefined;
   update(taskId: string, patch: Partial<TaskRecord>): TaskRecord;
   hasActiveTask(): boolean;
+}
+
+export interface WorkspaceCleanupService {
+  cleanup(task: TaskRecord): Promise<void>;
 }
 
 export interface WorkerRunner {

@@ -10,6 +10,7 @@ import type {
   TaskRecord,
   TaskService,
   TaskStore,
+  WorkspaceCleanupService,
   WorkerRunner,
 } from "../types/task.types.js";
 import {
@@ -29,13 +30,14 @@ export class DefaultTaskService implements TaskService {
     private readonly taskStore: TaskStore,
     private readonly workerRunner: WorkerRunner,
     private readonly publishService: PublishService,
+    private readonly workspaceCleanupService: WorkspaceCleanupService,
     private readonly config: TaskServiceConfig,
   ) {}
 
   async createTask(input: CreateTaskInput): Promise<CreateTaskResult> {
     if (this.taskStore.hasActiveTask()) {
       throw new TaskConflictError(
-        "Another task is already running or awaiting approval",
+        "Another task is already running, publishing, or awaiting approval",
       );
     }
 
@@ -75,13 +77,25 @@ export class DefaultTaskService implements TaskService {
     }
 
     try {
-      const publishResult = await this.publishService.publish(task);
+      const publishingTask = this.taskStore.update(taskId, {
+        status: "publishing",
+      });
+      const publishResult = await this.publishService.publish(publishingTask);
 
-      return this.taskStore.update(taskId, {
+      const approvedTask = this.taskStore.update(taskId, {
         status: "approved",
         prUrl: publishResult.prUrl,
       });
+
+      void this.cleanupWorkspace(approvedTask);
+      return approvedTask;
     } catch (error: unknown) {
+      const currentTask = this.taskStore.get(taskId);
+
+      if (currentTask !== undefined && currentTask.status === "publishing") {
+        this.taskStore.update(taskId, { status: "awaiting_approval" });
+      }
+
       throw new TaskPublishError(formatWorkerError(error));
     }
   }
@@ -95,7 +109,10 @@ export class DefaultTaskService implements TaskService {
       );
     }
 
-    return this.taskStore.update(taskId, { status: "rejected" });
+    const rejectedTask = this.taskStore.update(taskId, { status: "rejected" });
+
+    void this.cleanupWorkspace(rejectedTask);
+    return rejectedTask;
   }
 
   private getTaskOrThrow(taskId: string): TaskRecord {
@@ -125,6 +142,7 @@ export class DefaultTaskService implements TaskService {
           summary: result.summary,
           errorMessage: "Codex execution failed",
         });
+        void this.cleanupWorkspace(this.getTaskOrThrow(taskId));
         return;
       }
 
@@ -140,6 +158,15 @@ export class DefaultTaskService implements TaskService {
         status: "failed",
         errorMessage: message,
       });
+      void this.cleanupWorkspace(this.getTaskOrThrow(taskId));
+    }
+  }
+
+  private async cleanupWorkspace(task: TaskRecord): Promise<void> {
+    try {
+      await this.workspaceCleanupService.cleanup(task);
+    } catch (error: unknown) {
+      console.warn(`Workspace cleanup failed for task ${task.taskId}:`, error);
     }
   }
 }

@@ -3,6 +3,7 @@ import type { TaskRecord, TaskStore } from "../types/task.types.js";
 const ACTIVE_STATUSES = new Set<TaskRecord["status"]>([
   "running",
   "awaiting_approval",
+  "publishing",
 ]);
 
 export class InMemoryTaskStore implements TaskStore {

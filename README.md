@@ -16,6 +16,7 @@ Implemented:
 - manual approve/reject flow
 - Git push and GitHub PR creation
 - optional single-user Telegram allowlist
+- Codex task timeout and workspace cleanup after terminal states
 
 Not implemented yet:
 

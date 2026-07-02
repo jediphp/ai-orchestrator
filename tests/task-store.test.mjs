@@ -14,7 +14,7 @@ function createTask(status) {
   };
 }
 
-test("InMemoryTaskStore treats running and awaiting approval tasks as active", () => {
+test("InMemoryTaskStore treats non-terminal lifecycle tasks as active", () => {
   const store = new InMemoryTaskStore();
 
   assert.equal(store.hasActiveTask(), false);
@@ -23,6 +23,9 @@ test("InMemoryTaskStore treats running and awaiting approval tasks as active", (
   assert.equal(store.hasActiveTask(), true);
 
   store.update("task-running", { status: "awaiting_approval" });
+  assert.equal(store.hasActiveTask(), true);
+
+  store.update("task-running", { status: "publishing" });
   assert.equal(store.hasActiveTask(), true);
 
   store.update("task-running", { status: "approved" });

@@ -25,6 +25,7 @@ function isCreateTaskResponse(value: unknown): value is CreateTaskResponse {
 const TASK_STATUSES = new Set<TaskStatus>([
   "running",
   "awaiting_approval",
+  "publishing",
   "approved",
   "rejected",
   "failed",
