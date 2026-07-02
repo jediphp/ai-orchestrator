@@ -60,7 +60,7 @@ test("DefaultTaskService marks tasks as publishing before approve publish", asyn
   assert.deepEqual(cleanedTaskIds, [task.taskId]);
 });
 
-test("DefaultTaskService fails successful worker runs without changed files", async () => {
+test("DefaultTaskService completes successful worker runs without changed files", async () => {
   const taskStore = new InMemoryTaskStore();
   const cleanedTaskIds = [];
 
@@ -94,12 +94,8 @@ test("DefaultTaskService fails successful worker runs without changed files", as
 
   const task = taskStore.get(result.taskId);
 
-  assert.equal(task?.status, "failed");
-  assert.equal(
-    task?.errorMessage,
-    "Codex completed without file changes. Last Codex output:\n" +
-      "Codex finished without edits",
-  );
+  assert.equal(task?.status, "completed");
+  assert.equal(task?.resultMessage, "Codex finished without edits");
   assert.deepEqual(task?.changedFiles, []);
   assert.equal(task?.summary, "0 files changed, 0 insertions, 0 deletions");
   assert.deepEqual(cleanedTaskIds, [result.taskId]);

@@ -2,6 +2,7 @@ import type { Context, Telegraf } from "telegraf";
 
 import {
   buildApprovalKeyboard,
+  formatCompletedTaskMessage,
   formatApprovalRequest,
   TaskPoller,
 } from "../services/task-poller.service.js";
@@ -75,6 +76,12 @@ async function notifyWhenTaskReady(
       await telegram.sendMessage(chatId, formatApprovalRequest(task), {
         reply_markup: buildApprovalKeyboard(task),
       });
+      return;
+    }
+
+    if (task.status === "completed") {
+      await telegram.sendMessage(chatId, formatCompletedTaskMessage(task));
+      chatSessionStore.clearActiveTaskId(chatId);
       return;
     }
 

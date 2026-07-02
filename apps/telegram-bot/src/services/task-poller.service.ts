@@ -4,6 +4,7 @@ const TERMINAL_STATUSES = new Set<TaskDetails["status"]>([
   "awaiting_approval",
   "approved",
   "rejected",
+  "completed",
   "failed",
 ]);
 
@@ -80,4 +81,29 @@ export function buildApprovalKeyboard(task: TaskDetails) {
       ],
     ],
   };
+}
+
+export function formatCompletedTaskMessage(task: TaskDetails): string {
+  const lines = [
+    "Task completed.",
+    "No PR is required.",
+    "",
+    `Summary: ${task.summary ?? "n/a"}`,
+  ];
+
+  if (task.resultMessage !== undefined && task.resultMessage.trim().length > 0) {
+    lines.push("", "Result:", trimTelegramMessage(task.resultMessage));
+  }
+
+  return lines.join("\n");
+}
+
+function trimTelegramMessage(message: string): string {
+  const maxLength = 2_500;
+
+  if (message.length <= maxLength) {
+    return message;
+  }
+
+  return `${message.slice(0, maxLength).trimEnd()}\n... output truncated ...`;
 }

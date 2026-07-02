@@ -13,6 +13,7 @@ export type TaskStatus =
   | "publishing"
   | "approved"
   | "rejected"
+  | "completed"
   | "failed";
 
 export interface TaskDetails {
@@ -24,6 +25,7 @@ export interface TaskDetails {
   workspacePath?: string;
   changedFiles?: string[];
   summary?: string;
+  resultMessage?: string;
   errorMessage?: string;
   prUrl?: string;
 }
