@@ -26,9 +26,11 @@ export class Worker {
     await this.prepareWorkspace(input);
 
     const codexResult = await this.codexRunner.runCodexTask(
-      input.task,
+      buildExecutionPrompt(input.task),
       input.targetPath,
     );
+
+    await this.gitService.moveCommittedChangesToWorkingTree();
 
     const changedFiles = await this.gitService.getChangedFiles();
     const summary = await this.gitService.getDiffSummary();
@@ -69,6 +71,19 @@ export class Worker {
       prUrl: pullRequest.url,
     };
   }
+}
+
+function buildExecutionPrompt(task: string): string {
+  return [
+    task,
+    "",
+    "Important workflow constraints:",
+    "- Modify files only in this local workspace.",
+    "- Do not commit changes.",
+    "- Do not push branches.",
+    "- Do not create pull requests.",
+    "- Stop after the working tree contains the requested changes.",
+  ].join("\n");
 }
 
 export { ShellGitService } from "./services/git.service.js";

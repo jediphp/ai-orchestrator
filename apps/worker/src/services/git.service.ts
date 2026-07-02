@@ -103,6 +103,23 @@ function withGithubAuth(repoUrl: string): string {
   }
 }
 
+function withoutGithubAuth(repoUrl: string): string {
+  try {
+    const url = new URL(repoUrl);
+
+    if (url.hostname !== "github.com") {
+      return repoUrl;
+    }
+
+    url.username = "";
+    url.password = "";
+
+    return url.toString();
+  } catch {
+    return repoUrl;
+  }
+}
+
 export class ShellGitService implements GitService {
   private workspacePath: string | null = null;
   private defaultBranch: string | null = null;
@@ -120,6 +137,10 @@ export class ShellGitService implements GitService {
     await this.runGit(["clone", withGithubAuth(repoUrl), targetPath]);
     this.workspacePath = targetPath;
     this.defaultBranch = null;
+    await this.runGit(
+      ["remote", "set-url", "origin", withoutGithubAuth(repoUrl)],
+      targetPath,
+    );
   }
 
   async createBranch(branchName: string): Promise<void> {
@@ -138,12 +159,19 @@ export class ShellGitService implements GitService {
     await this.runGit(["pull"], this.getWorkspacePath());
   }
 
+  async moveCommittedChangesToWorkingTree(): Promise<void> {
+    const workspacePath = this.getWorkspacePath();
+    const baseBranch = await this.resolveDefaultBranch();
+
+    await this.runGit(["reset", "--soft", baseBranch], workspacePath);
+  }
+
   async getChangedFiles(): Promise<string[]> {
     const workspacePath = this.getWorkspacePath();
 
     const statusOutput = await this.runGit(["status", "--porcelain"], workspacePath);
     const diffNamesOutput = await this.runGit(
-      ["diff", "--name-only"],
+      ["diff", "--name-only", "HEAD"],
       workspacePath,
     );
 
@@ -158,7 +186,7 @@ export class ShellGitService implements GitService {
 
     await this.runGit(["status"], workspacePath);
 
-    const statOutput = await this.runGit(["diff", "--stat"], workspacePath);
+    const statOutput = await this.runGit(["diff", "--stat", "HEAD"], workspacePath);
 
     return parseDiffStatSummary(statOutput);
   }
@@ -202,8 +230,14 @@ export class ShellGitService implements GitService {
 
     const workspacePath = this.getWorkspacePath();
 
-    // Clone embeds the token in origin URL; an extra Authorization header conflicts with it.
-    await this.runGit(["push", "origin", branchName], workspacePath);
+    const originUrl = (
+      await this.runGit(["remote", "get-url", "origin"], workspacePath)
+    ).trim();
+
+    await this.runGit(
+      ["push", withGithubAuth(originUrl), branchName],
+      workspacePath,
+    );
   }
 
   async createPullRequest(

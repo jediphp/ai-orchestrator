@@ -48,6 +48,7 @@ export interface GitService {
   createBranch(branchName: string): Promise<void>;
   checkoutMain(): Promise<void>;
   pullLatest(): Promise<void>;
+  moveCommittedChangesToWorkingTree(): Promise<void>;
   getChangedFiles(): Promise<string[]>;
   getDiffSummary(): Promise<string>;
   getDiffPatch(maxChars?: number): Promise<string>;

@@ -56,9 +56,28 @@ export function formatApprovalRequest(task: TaskDetails): string {
     "Files:",
     files,
     "",
-    `Reply /approve ${task.taskId} to continue.`,
-    "Reply APPROVE if this is your active task.",
-    `Reply /reject ${task.taskId} to cancel.`,
+    "Tap Approve below, or reply APPROVE.",
+    "Tap Reject below, or reply REJECT.",
+    "",
+    `Fallback approve command: /approve ${task.taskId}`,
+    `Fallback reject command: /reject ${task.taskId}`,
     "Push will not happen until you approve.",
   ].join("\n");
+}
+
+export function buildApprovalKeyboard(task: TaskDetails) {
+  return {
+    inline_keyboard: [
+      [
+        {
+          text: "Approve",
+          callback_data: `task:approve:${task.taskId}`,
+        },
+        {
+          text: "Reject",
+          callback_data: `task:reject:${task.taskId}`,
+        },
+      ],
+    ],
+  };
 }

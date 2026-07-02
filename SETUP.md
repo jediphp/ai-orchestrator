@@ -499,11 +499,11 @@ curl -X POST http://127.0.0.1:3000/task \
    Files:
    - src/auth.service.ts
 
-   Reply /approve <taskId> to continue.
+   Tap Approve below, or reply APPROVE.
    Push will not happen until you approve.
    ```
 
-7. Отправьте **`/approve <taskId>`** или **`APPROVE`** (если это активная задача).
+7. Нажмите кнопку **Approve** или отправьте **`APPROVE`** (если это активная задача). Команда **`/approve <taskId>`** остаётся fallback-вариантом.
 
 8. Система выполнит:
    - `git add .`
@@ -523,6 +523,8 @@ curl -X POST http://127.0.0.1:3000/task \
 
 11. Если Orchestrator недоступен или нет `GITHUB_TOKEN`, бот ответит с ошибкой.
 12. Если Codex завершился без изменений файлов, задача будет помечена как failed и push/PR не будет предложен.
+
+Worker на этапе выполнения задачи запускает Codex без `GITHUB_TOKEN`/`GH_TOKEN` и очищает `origin` от встроенного токена. Push и создание PR выполняются только отдельным publish-шагом после approve.
 
 ---
 

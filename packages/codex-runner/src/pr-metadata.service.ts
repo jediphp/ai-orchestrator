@@ -216,6 +216,14 @@ interface SpawnCodexExecInput {
   timeoutMs: number;
 }
 
+function buildCodexEnv(): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+
+  delete env.GITHUB_TOKEN;
+  delete env.GH_TOKEN;
+  return env;
+}
+
 async function spawnCodexExec(
   input: SpawnCodexExecInput,
 ): Promise<string[]> {
@@ -242,7 +250,7 @@ async function spawnCodexExec(
       ],
       {
         cwd: input.projectPath,
-        env: process.env,
+        env: buildCodexEnv(),
         stdio: ["ignore", "pipe", "pipe"],
       },
     );
