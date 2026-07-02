@@ -17,6 +17,12 @@ function createAwaitingApprovalTask() {
   };
 }
 
+function waitForWorker() {
+  return new Promise((resolve) => {
+    setImmediate(resolve);
+  });
+}
+
 test("DefaultTaskService marks tasks as publishing before approve publish", async () => {
   const taskStore = new InMemoryTaskStore();
   const task = createAwaitingApprovalTask();
@@ -52,4 +58,45 @@ test("DefaultTaskService marks tasks as publishing before approve publish", asyn
   assert.equal(result.prUrl, "https://github.com/org/repo/pull/1");
   assert.deepEqual(publishedStatuses, ["publishing"]);
   assert.deepEqual(cleanedTaskIds, [task.taskId]);
+});
+
+test("DefaultTaskService fails successful worker runs without changed files", async () => {
+  const taskStore = new InMemoryTaskStore();
+  const cleanedTaskIds = [];
+
+  const taskService = new DefaultTaskService(
+    taskStore,
+    {
+      async execute() {
+        return {
+          success: true,
+          changedFiles: [],
+          summary: "0 files changed, 0 insertions, 0 deletions",
+          logs: [],
+        };
+      },
+    },
+    {
+      async publish() {
+        throw new Error("Publish should not run in this test");
+      },
+    },
+    {
+      async cleanup(taskToCleanup) {
+        cleanedTaskIds.push(taskToCleanup.taskId);
+      },
+    },
+    { workspaceBasePath: "/tmp/remote-dev-agent" },
+  );
+
+  const result = await taskService.createTask({ text: "Add a README line" });
+  await waitForWorker();
+
+  const task = taskStore.get(result.taskId);
+
+  assert.equal(task?.status, "failed");
+  assert.equal(task?.errorMessage, "Codex completed without file changes");
+  assert.deepEqual(task?.changedFiles, []);
+  assert.equal(task?.summary, "0 files changed, 0 insertions, 0 deletions");
+  assert.deepEqual(cleanedTaskIds, [result.taskId]);
 });

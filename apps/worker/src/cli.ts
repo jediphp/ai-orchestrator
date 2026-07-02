@@ -5,6 +5,7 @@ import type {
   ExecuteTaskResult,
   PublishChangesResult,
 } from "./types.js";
+import { GhCommandError, GitCommandError } from "./types.js";
 import { Worker } from "./worker.js";
 
 type WorkerCommand = "execute" | "publish";
@@ -102,8 +103,24 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  const errorMessage = error instanceof Error ? error.message : "Worker failed";
+  const errorMessage = formatCliError(error);
 
   writeResponse({ ok: false, errorMessage });
   process.exit(1);
 });
+
+function formatCliError(error: unknown): string {
+  if (error instanceof GitCommandError || error instanceof GhCommandError) {
+    const details = error.stderr.trim();
+
+    if (details.length > 0) {
+      return `${error.message}: ${details}`;
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Worker failed";
+}
