@@ -199,16 +199,26 @@ function formatWorkerError(error: unknown): string {
 }
 
 function formatResultMessage(logs: string[]): string {
-  const details = logs
-    .map((line) => line.trim())
+  const lines = logs
+    .map(normalizeCodexLogLine)
     .filter((line) => line.length > 0)
     .filter((line) => !line.startsWith("diff --git "))
-    .slice(-8)
-    .join("\n");
+    .filter((line) => !line.startsWith("- Do not "))
+    .filter((line) => line !== "Important workflow constraints:")
+    .filter((line) => line !== "codex")
+    .filter((line) => line !== "tokens used")
+    .filter((line) => !/^\d[\d,]*$/.test(line))
+    .slice(-8);
+
+  const details = [...new Set(lines)].join("\n");
 
   if (details.length === 0) {
     return "Codex completed successfully without file changes.";
   }
 
   return details;
+}
+
+function normalizeCodexLogLine(line: string): string {
+  return line.trim().replace(/^\[stderr\]\s*/, "").trim();
 }

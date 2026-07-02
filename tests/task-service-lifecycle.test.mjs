@@ -72,7 +72,14 @@ test("DefaultTaskService completes successful worker runs without changed files"
           success: true,
           changedFiles: [],
           summary: "0 files changed, 0 insertions, 0 deletions",
-          logs: ["Codex finished without edits"],
+          logs: [
+            "[stderr] - Do not push branches.",
+            "[stderr] codex",
+            "[stderr] Deployment finished successfully",
+            "[stderr] tokens used",
+            "[stderr] 3,456",
+            "Deployment finished successfully",
+          ],
         };
       },
     },
@@ -95,7 +102,10 @@ test("DefaultTaskService completes successful worker runs without changed files"
   const task = taskStore.get(result.taskId);
 
   assert.equal(task?.status, "completed");
-  assert.equal(task?.resultMessage, "Codex finished without edits");
+  assert.equal(
+    task?.resultMessage,
+    "Deployment finished successfully",
+  );
   assert.deepEqual(task?.changedFiles, []);
   assert.equal(task?.summary, "0 files changed, 0 insertions, 0 deletions");
   assert.deepEqual(cleanedTaskIds, [result.taskId]);
