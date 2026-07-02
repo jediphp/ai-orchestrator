@@ -54,6 +54,7 @@ export class DockerWorkerProcess {
       GITHUB_TOKEN: readRequiredEnv("GITHUB_TOKEN"),
       DEFAULT_BRANCH: readOptionalEnv("DEFAULT_BRANCH") ?? "",
       CODEX_PROFILE: readOptionalEnv("CODEX_PROFILE") ?? "automation",
+      CODEX_SANDBOX: readOptionalEnv("CODEX_SANDBOX") ?? "",
       CODEX_TASK_TIMEOUT_MS: readOptionalEnv("CODEX_TASK_TIMEOUT_MS") ?? "",
     };
 

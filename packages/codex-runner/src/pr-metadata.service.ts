@@ -220,6 +220,7 @@ async function spawnCodexExec(
   input: SpawnCodexExecInput,
 ): Promise<string[]> {
   const profile = process.env.CODEX_PROFILE ?? "automation";
+  const sandbox = process.env.CODEX_SANDBOX?.trim() || "read-only";
   const logs: string[] = [];
 
   return new Promise((resolve, reject) => {
@@ -230,7 +231,7 @@ async function spawnCodexExec(
         "-p",
         profile,
         "-s",
-        "read-only",
+        sandbox,
         "-C",
         input.projectPath,
         "--output-schema",
