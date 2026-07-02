@@ -17,11 +17,11 @@ Implemented:
 - Git push and GitHub PR creation
 - optional single-user Telegram allowlist
 - Codex task timeout and workspace cleanup after terminal states
+- Docker Compose VPS deployment with isolated worker containers
 
 Not implemented yet:
 
 - Telegram voice transcription
-- Docker-isolated worker runtime
 - persistent database
 - web dashboard
 
@@ -54,10 +54,14 @@ There is also a root [.env.example](.env.example) with all variables in one plac
 
 Full setup instructions are in [SETUP.md](SETUP.md).
 
+For VPS deployment, copy [.env.vps.example](.env.vps.example), build with
+`docker-compose.vps.yml`, and authorize Codex inside the `codex-home` Docker
+volume.
+
 ## Security
 
 Never commit real `.env` files, tokens, repository credentials, Codex auth files, or GitHub personal access tokens. This repository includes `.env.example` templates only.
 
 ## Contributing
 
-Community help is welcome. Good first areas are tests, documentation, voice transcription, Docker isolation, lifecycle hardening, and deployment examples. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Community help is welcome. Good first areas are tests, documentation, voice transcription, lifecycle hardening, and deployment examples. See [CONTRIBUTING.md](CONTRIBUTING.md).
