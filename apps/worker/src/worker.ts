@@ -24,6 +24,7 @@ export class Worker {
 
   async executeTask(input: ExecuteTaskInput): Promise<ExecuteTaskResult> {
     await this.prepareWorkspace(input);
+    await this.gitService.removeRepositoryCredentials(input.repoUrl);
 
     const codexResult = await this.codexRunner.runCodexTask(
       buildExecutionPrompt(input.task),

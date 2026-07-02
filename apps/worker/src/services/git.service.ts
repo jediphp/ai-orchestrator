@@ -137,9 +137,12 @@ export class ShellGitService implements GitService {
     await this.runGit(["clone", withGithubAuth(repoUrl), targetPath]);
     this.workspacePath = targetPath;
     this.defaultBranch = null;
+  }
+
+  async removeRepositoryCredentials(repoUrl: string): Promise<void> {
     await this.runGit(
       ["remote", "set-url", "origin", withoutGithubAuth(repoUrl)],
-      targetPath,
+      this.getWorkspacePath(),
     );
   }
 
