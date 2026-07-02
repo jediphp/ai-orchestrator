@@ -146,6 +146,17 @@ export class DefaultTaskService implements TaskService {
         return;
       }
 
+      if (result.changedFiles.length === 0) {
+        this.taskStore.update(taskId, {
+          status: "failed",
+          changedFiles: result.changedFiles,
+          summary: result.summary,
+          errorMessage: "Codex completed without file changes",
+        });
+        void this.cleanupWorkspace(this.getTaskOrThrow(taskId));
+        return;
+      }
+
       this.taskStore.update(taskId, {
         status: "awaiting_approval",
         changedFiles: result.changedFiles,
