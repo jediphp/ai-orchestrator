@@ -199,11 +199,19 @@ function formatWorkerError(error: unknown): string {
 }
 
 function formatResultMessage(logs: string[]): string {
-  const lines = logs
-    .map(normalizeCodexLogLine)
+  const normalizedLogs = logs.map(normalizeCodexLogLine);
+  const lastCodexIndex = normalizedLogs.lastIndexOf("codex");
+  const sourceLines =
+    lastCodexIndex === -1 ? normalizedLogs : normalizedLogs.slice(lastCodexIndex + 1);
+  const lines = sourceLines
     .filter((line) => line.length > 0)
     .filter((line) => !line.startsWith("diff --git "))
+    .filter((line) => !line.startsWith("session id:"))
+    .filter((line) => line !== "--------")
+    .filter((line) => line !== "user")
     .filter((line) => !line.startsWith("- Do not "))
+    .filter((line) => !line.startsWith("- Modify files "))
+    .filter((line) => !line.startsWith("- Stop after "))
     .filter((line) => line !== "Important workflow constraints:")
     .filter((line) => line !== "codex")
     .filter((line) => line !== "tokens used")
