@@ -6,6 +6,7 @@ import {
   isApprovalCommand,
   parseApprovalCommand,
 } from "../apps/telegram-bot/dist/handlers/approval.handler.js";
+import { formatApprovalRequest } from "../apps/telegram-bot/dist/services/task-poller.service.js";
 
 test("parseApprovalCommand handles approve and reject aliases", () => {
   assert.deepEqual(parseApprovalCommand("APPROVE"), { action: "approve" });
@@ -34,4 +35,19 @@ test("formatApprovalSuccessMessage includes PR URL when present", () => {
       "https://github.com/org/repo/pull/1",
     ].join("\n"),
   );
+});
+
+test("formatApprovalRequest promotes tap and short approval flows", () => {
+  const message = formatApprovalRequest({
+    taskId: "task-123",
+    text: "Update README",
+    status: "awaiting_approval",
+    createdAt: "2026-07-02T00:00:00.000Z",
+    branchName: "docs/update-readme-task-123",
+    changedFiles: ["README.md"],
+    summary: "1 file changed, 1 insertion",
+  });
+
+  assert.match(message, /Tap Approve below, or reply APPROVE/);
+  assert.match(message, /Fallback approve command: \/approve task-123/);
 });

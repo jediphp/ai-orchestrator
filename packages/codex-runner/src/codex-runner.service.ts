@@ -60,6 +60,14 @@ function readCodexSandbox(fallback: string): string {
     : rawSandbox;
 }
 
+function buildCodexEnv(): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+
+  delete env.GITHUB_TOKEN;
+  delete env.GH_TOKEN;
+  return env;
+}
+
 export class ShellCodexRunner implements CodexRunner {
   async runCodexTask(
     task: string,
@@ -90,7 +98,7 @@ export class ShellCodexRunner implements CodexRunner {
         ],
         {
           cwd: projectPath,
-          env: process.env,
+          env: buildCodexEnv(),
           stdio: ["ignore", "pipe", "pipe"],
         },
       );

@@ -34,6 +34,25 @@ export function registerHandlers(
     chatSessionStore,
   );
 
+  bot.action(/^task:(approve|reject):(.+)$/, async (ctx) => {
+    if (!isAllowedUser(ctx, accessOptions)) {
+      await ctx.answerCbQuery("This bot is private.");
+      return;
+    }
+
+    const action = ctx.match[1];
+    const taskId = ctx.match[2];
+
+    await ctx.answerCbQuery();
+
+    if (action === "approve") {
+      await approveHandler(ctx, taskId);
+      return;
+    }
+
+    await rejectHandler(ctx, taskId);
+  });
+
   bot.on("text", async (ctx) => {
     if (!isAllowedUser(ctx, accessOptions)) {
       await ctx.reply("This bot is private.");

@@ -1,6 +1,7 @@
 import type { Context, Telegraf } from "telegraf";
 
 import {
+  buildApprovalKeyboard,
   formatApprovalRequest,
   TaskPoller,
 } from "../services/task-poller.service.js";
@@ -71,7 +72,9 @@ async function notifyWhenTaskReady(
     }
 
     if (task.status === "awaiting_approval") {
-      await telegram.sendMessage(chatId, formatApprovalRequest(task));
+      await telegram.sendMessage(chatId, formatApprovalRequest(task), {
+        reply_markup: buildApprovalKeyboard(task),
+      });
       return;
     }
 
