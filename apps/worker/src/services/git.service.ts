@@ -64,7 +64,7 @@ function parseDiffStatSummary(output: string): string {
   for (let index = lines.length - 1; index >= 0; index -= 1) {
     const line = lines[index];
 
-    if (line !== undefined && line.includes("files changed")) {
+    if (line !== undefined && /\bfiles? changed\b/.test(line)) {
       return normalizeDiffStatSummary(line);
     }
   }
