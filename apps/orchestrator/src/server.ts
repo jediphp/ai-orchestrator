@@ -8,6 +8,10 @@ export function createServer(taskService: TaskService) {
     logger: true,
   });
 
+  app.get("/health", async () => {
+    return { status: "ok" };
+  });
+
   registerTaskRoutes(app, taskService);
 
   return app;

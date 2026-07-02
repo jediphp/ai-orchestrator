@@ -26,7 +26,6 @@ Before opening a PR:
 ## Current Priorities
 
 - Telegram voice message transcription
-- Docker-isolated worker execution
 - task lifecycle hardening
 - route and worker integration tests
 - deployment documentation

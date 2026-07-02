@@ -1,0 +1,70 @@
+services:
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    image: ai-orchestrator-orchestrator:latest
+    restart: unless-stopped
+    environment:
+      PORT: ${PORT:-3000}
+      HOST: ${HOST:-0.0.0.0}
+      REPO_URL: ${REPO_URL}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      DEFAULT_BRANCH: ${DEFAULT_BRANCH:-main}
+      WORKSPACE_BASE_PATH: ${WORKSPACE_BASE_PATH:-/workspaces}
+      CODEX_PROFILE: ${CODEX_PROFILE:-automation}
+      CODEX_TASK_TIMEOUT_MS: ${CODEX_TASK_TIMEOUT_MS:-1800000}
+      WORKER_EXECUTION_MODE: ${WORKER_EXECUTION_MODE:-docker}
+      WORKER_IMAGE: ${WORKER_IMAGE:-ai-orchestrator-worker:latest}
+      WORKER_WORKSPACE_VOLUME: ${WORKER_WORKSPACE_VOLUME:-ai-orchestrator-worker-workspaces}
+      CODEX_HOME_VOLUME: ${CODEX_HOME_VOLUME:-ai-orchestrator-codex-home}
+    expose:
+      - "3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - worker-workspaces:/workspaces
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.telegram-bot
+    image: ai-orchestrator-telegram-bot:latest
+    restart: unless-stopped
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      ORCHESTRATOR_URL: ${ORCHESTRATOR_URL:-http://orchestrator:3000}
+      TELEGRAM_ALLOWED_USER_ID: ${TELEGRAM_ALLOWED_USER_ID:-}
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: ai-orchestrator-worker:latest
+    profiles:
+      - tools
+    environment:
+      REPO_URL: ${REPO_URL}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      DEFAULT_BRANCH: ${DEFAULT_BRANCH:-main}
+      WORKSPACE_BASE_PATH: ${WORKSPACE_BASE_PATH:-/workspaces}
+      CODEX_PROFILE: ${CODEX_PROFILE:-automation}
+      CODEX_TASK_TIMEOUT_MS: ${CODEX_TASK_TIMEOUT_MS:-1800000}
+    volumes:
+      - codex-home:/root/.codex
+      - worker-workspaces:/workspaces
+    command: ["sleep", "infinity"]
+
+volumes:
+  codex-home:
+    name: ai-orchestrator-codex-home
+  worker-workspaces:
+    name: ai-orchestrator-worker-workspaces
