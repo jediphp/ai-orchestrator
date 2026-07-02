@@ -45,6 +45,7 @@ export const AI_COMMIT_MESSAGE = "feat: ai-generated update";
 export interface GitService {
   openWorkspace(targetPath: string): void;
   cloneRepository(repoUrl: string, targetPath: string): Promise<void>;
+  removeRepositoryCredentials(repoUrl: string): Promise<void>;
   createBranch(branchName: string): Promise<void>;
   checkoutMain(): Promise<void>;
   pullLatest(): Promise<void>;
