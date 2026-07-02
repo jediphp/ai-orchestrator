@@ -6,7 +6,10 @@ import {
   isApprovalCommand,
   parseApprovalCommand,
 } from "../apps/telegram-bot/dist/handlers/approval.handler.js";
-import { formatApprovalRequest } from "../apps/telegram-bot/dist/services/task-poller.service.js";
+import {
+  formatApprovalRequest,
+  formatCompletedTaskMessage,
+} from "../apps/telegram-bot/dist/services/task-poller.service.js";
 
 test("parseApprovalCommand handles approve and reject aliases", () => {
   assert.deepEqual(parseApprovalCommand("APPROVE"), { action: "approve" });
@@ -50,4 +53,19 @@ test("formatApprovalRequest promotes tap and short approval flows", () => {
 
   assert.match(message, /Tap Approve below, or reply APPROVE/);
   assert.match(message, /Fallback approve command: \/approve task-123/);
+});
+
+test("formatCompletedTaskMessage includes no-PR result", () => {
+  const message = formatCompletedTaskMessage({
+    taskId: "task-123",
+    text: "Deploy to test",
+    status: "completed",
+    createdAt: "2026-07-02T00:00:00.000Z",
+    branchName: "ops/deploy-to-test-task-123",
+    summary: "0 files changed, 0 insertions, 0 deletions",
+    resultMessage: "Deployment finished successfully",
+  });
+
+  assert.match(message, /No PR is required/);
+  assert.match(message, /Deployment finished successfully/);
 });

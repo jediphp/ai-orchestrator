@@ -43,7 +43,8 @@ export function registerHandlers(
     const action = ctx.match[1];
     const taskId = ctx.match[2];
 
-    await ctx.answerCbQuery();
+    await ctx.answerCbQuery("Processing...");
+    await clearInlineKeyboard(ctx);
 
     if (action === "approve") {
       await approveHandler(ctx, taskId);
@@ -83,6 +84,14 @@ export function registerHandlers(
 
     await taskHandler(ctx);
   });
+}
+
+async function clearInlineKeyboard(ctx: Context): Promise<void> {
+  try {
+    await ctx.editMessageReplyMarkup(undefined);
+  } catch (error: unknown) {
+    console.warn("Failed to clear Telegram inline keyboard:", error);
+  }
 }
 
 function isAllowedUser(ctx: Context, accessOptions: BotAccessOptions): boolean {

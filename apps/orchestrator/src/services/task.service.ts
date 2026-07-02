@@ -148,10 +148,10 @@ export class DefaultTaskService implements TaskService {
 
       if (result.changedFiles.length === 0) {
         this.taskStore.update(taskId, {
-          status: "failed",
+          status: "completed",
           changedFiles: result.changedFiles,
           summary: result.summary,
-          errorMessage: formatNoChangesError(result.logs),
+          resultMessage: formatResultMessage(result.logs),
         });
         void this.cleanupWorkspace(this.getTaskOrThrow(taskId));
         return;
@@ -198,16 +198,17 @@ function formatWorkerError(error: unknown): string {
   return "Worker execution failed";
 }
 
-function formatNoChangesError(logs: string[]): string {
+function formatResultMessage(logs: string[]): string {
   const details = logs
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .slice(-5)
+    .filter((line) => !line.startsWith("diff --git "))
+    .slice(-8)
     .join("\n");
 
   if (details.length === 0) {
-    return "Codex completed without file changes";
+    return "Codex completed successfully without file changes.";
   }
 
-  return `Codex completed without file changes. Last Codex output:\n${details}`;
+  return details;
 }

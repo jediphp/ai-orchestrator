@@ -28,6 +28,7 @@ const TASK_STATUSES = new Set<TaskStatus>([
   "publishing",
   "approved",
   "rejected",
+  "completed",
   "failed",
 ]);
 
