@@ -1,0 +1,20 @@
+{
+  "name": "@remote-dev-agent/orchestrator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@remote-dev-agent/codex-runner": "workspace:*",
+    "@remote-dev-agent/worker": "workspace:*",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21"
+  }
+}

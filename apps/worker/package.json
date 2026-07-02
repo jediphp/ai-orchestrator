@@ -1,0 +1,22 @@
+{
+  "name": "@remote-dev-agent/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@remote-dev-agent/codex-runner": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21"
+  }
+}
