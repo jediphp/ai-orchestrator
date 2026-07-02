@@ -13,14 +13,6 @@ export interface DockerWorkerRunInput {
   env: Record<string, string>;
 }
 
-function appendLines(target: string[], chunk: string): void {
-  for (const line of chunk.split(/\r?\n/)) {
-    if (line.trim().length > 0) {
-      target.push(line);
-    }
-  }
-}
-
 function readRequiredEnv(name: string): string {
   const value = process.env[name];
 
@@ -41,12 +33,19 @@ function buildDockerEnvArgs(env: Record<string, string>): string[] {
   return Object.keys(env).flatMap((name) => ["--env", name]);
 }
 
+function splitOutputLines(output: string): string[] {
+  return output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
 export class DockerWorkerProcess {
   constructor(private readonly config: DockerWorkerProcessConfig) {}
 
   async runJson<T>(input: DockerWorkerRunInput): Promise<T> {
-    const stdoutLines: string[] = [];
-    const stderrLines: string[] = [];
+    let stdout = "";
+    let stderr = "";
     const dockerEnv = {
       ...input.env,
       REPO_URL: this.config.repoUrl,
@@ -82,11 +81,11 @@ export class DockerWorkerProcess {
       });
 
       child.stdout.on("data", (chunk: Buffer) => {
-        appendLines(stdoutLines, chunk.toString());
+        stdout += chunk.toString();
       });
 
       child.stderr.on("data", (chunk: Buffer) => {
-        appendLines(stderrLines, chunk.toString());
+        stderr += chunk.toString();
       });
 
       child.on("error", (error: Error) => {
@@ -99,6 +98,7 @@ export class DockerWorkerProcess {
           return;
         }
 
+        const stdoutLines = splitOutputLines(stdout);
         const workerErrorMessage = readWorkerFailureMessage(stdoutLines);
 
         if (workerErrorMessage !== undefined) {
@@ -108,24 +108,22 @@ export class DockerWorkerProcess {
 
         reject(
           new Error(
-            `Docker worker failed with exit code ${exitCode ?? "unknown"}: ${stderrLines.join("\n")}`,
+            `Docker worker failed with exit code ${exitCode ?? "unknown"}: ${splitOutputLines(stderr).join("\n")}`,
           ),
         );
       });
     });
 
-    return parseWorkerResponse(stdoutLines);
+    return parseWorkerResponse(splitOutputLines(stdout));
   }
 }
 
 function parseWorkerResponse<T>(stdoutLines: string[]): T {
-  const lastLine = stdoutLines.at(-1);
+  const parsed = readWorkerResponse(stdoutLines);
 
-  if (lastLine === undefined) {
+  if (parsed === undefined) {
     throw new Error("Docker worker returned empty output");
   }
-
-  const parsed: unknown = JSON.parse(lastLine);
 
   if (
     typeof parsed !== "object" ||
@@ -153,27 +151,44 @@ function parseWorkerResponse<T>(stdoutLines: string[]): T {
 }
 
 function readWorkerFailureMessage(stdoutLines: string[]): string | undefined {
-  const lastLine = stdoutLines.at(-1);
+  const parsed = readWorkerResponse(stdoutLines);
 
-  if (lastLine === undefined) {
-    return undefined;
+  if (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "ok" in parsed &&
+    parsed.ok === false &&
+    "errorMessage" in parsed &&
+    typeof parsed.errorMessage === "string"
+  ) {
+    return parsed.errorMessage;
   }
 
-  try {
-    const parsed: unknown = JSON.parse(lastLine);
+  return undefined;
+}
 
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "ok" in parsed &&
-      parsed.ok === false &&
-      "errorMessage" in parsed &&
-      typeof parsed.errorMessage === "string"
-    ) {
-      return parsed.errorMessage;
+function readWorkerResponse(stdoutLines: string[]): unknown {
+  for (let index = stdoutLines.length - 1; index >= 0; index -= 1) {
+    const line = stdoutLines[index];
+
+    if (line === undefined) {
+      continue;
     }
-  } catch {
-    return undefined;
+
+    try {
+      const parsed: unknown = JSON.parse(line);
+
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        "ok" in parsed &&
+        typeof parsed.ok === "boolean"
+      ) {
+        return parsed;
+      }
+    } catch {
+      continue;
+    }
   }
 
   return undefined;
