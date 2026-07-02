@@ -73,7 +73,13 @@ test("DefaultTaskService completes successful worker runs without changed files"
           changedFiles: [],
           summary: "0 files changed, 0 insertions, 0 deletions",
           logs: [
+            "[stderr] session id: abc",
+            "[stderr] --------",
+            "[stderr] user",
+            "[stderr] Deploy to test",
+            "[stderr] - Modify files only in this local workspace.",
             "[stderr] - Do not push branches.",
+            "[stderr] - Stop after the working tree contains the requested changes.",
             "[stderr] codex",
             "[stderr] Deployment finished successfully",
             "[stderr] tokens used",
