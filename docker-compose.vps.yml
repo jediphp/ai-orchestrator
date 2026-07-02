@@ -13,6 +13,7 @@ services:
       DEFAULT_BRANCH: ${DEFAULT_BRANCH:-main}
       WORKSPACE_BASE_PATH: ${WORKSPACE_BASE_PATH:-/workspaces}
       CODEX_PROFILE: ${CODEX_PROFILE:-automation}
+      CODEX_SANDBOX: ${CODEX_SANDBOX:-danger-full-access}
       CODEX_TASK_TIMEOUT_MS: ${CODEX_TASK_TIMEOUT_MS:-1800000}
       WORKER_EXECUTION_MODE: ${WORKER_EXECUTION_MODE:-docker}
       WORKER_IMAGE: ${WORKER_IMAGE:-ai-orchestrator-worker:latest}
@@ -57,6 +58,7 @@ services:
       DEFAULT_BRANCH: ${DEFAULT_BRANCH:-main}
       WORKSPACE_BASE_PATH: ${WORKSPACE_BASE_PATH:-/workspaces}
       CODEX_PROFILE: ${CODEX_PROFILE:-automation}
+      CODEX_SANDBOX: ${CODEX_SANDBOX:-danger-full-access}
       CODEX_TASK_TIMEOUT_MS: ${CODEX_TASK_TIMEOUT_MS:-1800000}
     volumes:
       - codex-home:/root/.codex

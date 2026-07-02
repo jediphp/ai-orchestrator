@@ -9,6 +9,7 @@ import type {
 import { generatePullRequestMetadata } from "./pr-metadata.service.js";
 
 const DEFAULT_CODEX_TASK_TIMEOUT_MS = 30 * 60 * 1000;
+const DEFAULT_CODEX_TASK_SANDBOX = "workspace-write";
 
 export class CodexRunnerError extends Error {
   constructor(message: string) {
@@ -51,6 +52,14 @@ function readCodexTaskTimeoutMs(): number {
   return timeoutMs;
 }
 
+function readCodexSandbox(fallback: string): string {
+  const rawSandbox = process.env.CODEX_SANDBOX?.trim();
+
+  return rawSandbox === undefined || rawSandbox.length === 0
+    ? fallback
+    : rawSandbox;
+}
+
 export class ShellCodexRunner implements CodexRunner {
   async runCodexTask(
     task: string,
@@ -63,6 +72,7 @@ export class ShellCodexRunner implements CodexRunner {
 
     return new Promise((resolve) => {
       const profile = process.env.CODEX_PROFILE ?? "automation";
+      const sandbox = readCodexSandbox(DEFAULT_CODEX_TASK_SANDBOX);
       const timeoutMs = readCodexTaskTimeoutMs();
       let settled = false;
 
@@ -73,7 +83,7 @@ export class ShellCodexRunner implements CodexRunner {
           "-p",
           profile,
           "-s",
-          "workspace-write",
+          sandbox,
           "-C",
           projectPath,
           task,

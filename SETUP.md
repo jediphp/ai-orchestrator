@@ -123,13 +123,14 @@ approval_policy = "never"
 Команда, которую вызывает `@remote-dev-agent/codex-runner`:
 
 ```bash
-codex exec -p automation -s workspace-write -C <projectPath> "<task>"
+codex exec -p automation -s "$CODEX_SANDBOX" -C <projectPath> "<task>"
 ```
 
 Опционально можно переопределить профиль:
 
 ```bash
 export CODEX_PROFILE=automation
+export CODEX_SANDBOX=workspace-write
 ```
 
 #### Доверие проекту
@@ -220,6 +221,7 @@ REPO_URL=https://github.com/your-org/your-repo.git
 WORKSPACE_BASE_PATH=/tmp/remote-dev-agent
 GITHUB_TOKEN=replace_with_github_pat
 CODEX_TASK_TIMEOUT_MS=1800000
+CODEX_SANDBOX=workspace-write
 WORKER_EXECUTION_MODE=local
 ```
 
@@ -232,6 +234,7 @@ WORKER_EXECUTION_MODE=local
 | `GITHUB_TOKEN`        | да          | —                         | PAT для `git push` и `gh pr`     |
 | `WORKSPACE_BASE_PATH` | нет         | `/tmp/remote-dev-agent`   | Базовая папка для clone          |
 | `CODEX_TASK_TIMEOUT_MS` | нет       | `1800000`                 | Timeout основного `codex exec` в миллисекундах |
+| `CODEX_SANDBOX`       | нет         | `workspace-write`         | Sandbox для `codex exec`; на VPS в Docker используйте `danger-full-access` |
 | `WORKER_EXECUTION_MODE` | нет       | `local`                   | `local` для разработки, `docker` для VPS |
 | `WORKER_IMAGE`        | для docker | —                         | Docker image одноразового Worker |
 | `WORKER_WORKSPACE_VOLUME` | для docker | —                      | Docker volume с workspace задач |
@@ -372,6 +375,7 @@ ORCHESTRATOR_URL=http://orchestrator:3000
 REPO_URL=https://github.com/your-org/your-repo.git
 GITHUB_TOKEN=replace_with_github_pat
 WORKER_EXECUTION_MODE=docker
+CODEX_SANDBOX=danger-full-access
 WORKER_IMAGE=ai-orchestrator-worker:latest
 WORKER_WORKSPACE_VOLUME=ai-orchestrator-worker-workspaces
 CODEX_HOME_VOLUME=ai-orchestrator-codex-home

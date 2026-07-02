@@ -72,7 +72,7 @@ test("DefaultTaskService fails successful worker runs without changed files", as
           success: true,
           changedFiles: [],
           summary: "0 files changed, 0 insertions, 0 deletions",
-          logs: [],
+          logs: ["Codex finished without edits"],
         };
       },
     },
@@ -95,7 +95,11 @@ test("DefaultTaskService fails successful worker runs without changed files", as
   const task = taskStore.get(result.taskId);
 
   assert.equal(task?.status, "failed");
-  assert.equal(task?.errorMessage, "Codex completed without file changes");
+  assert.equal(
+    task?.errorMessage,
+    "Codex completed without file changes. Last Codex output:\n" +
+      "Codex finished without edits",
+  );
   assert.deepEqual(task?.changedFiles, []);
   assert.equal(task?.summary, "0 files changed, 0 insertions, 0 deletions");
   assert.deepEqual(cleanedTaskIds, [result.taskId]);
