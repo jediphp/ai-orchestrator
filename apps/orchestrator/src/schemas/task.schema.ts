@@ -50,6 +50,7 @@ export const taskRecordResponseSchema = {
       enum: [
         "running",
         "awaiting_approval",
+        "publishing",
         "approved",
         "rejected",
         "failed",

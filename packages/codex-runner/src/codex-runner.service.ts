@@ -8,6 +8,8 @@ import type {
 } from "./types.js";
 import { generatePullRequestMetadata } from "./pr-metadata.service.js";
 
+const DEFAULT_CODEX_TASK_TIMEOUT_MS = 30 * 60 * 1000;
+
 export class CodexRunnerError extends Error {
   constructor(message: string) {
     super(message);
@@ -33,6 +35,22 @@ function appendLogLines(
   }
 }
 
+function readCodexTaskTimeoutMs(): number {
+  const rawTimeout = process.env.CODEX_TASK_TIMEOUT_MS?.trim();
+
+  if (rawTimeout === undefined || rawTimeout.length === 0) {
+    return DEFAULT_CODEX_TASK_TIMEOUT_MS;
+  }
+
+  const timeoutMs = Number(rawTimeout);
+
+  if (!Number.isInteger(timeoutMs) || timeoutMs <= 0) {
+    throw new CodexRunnerError("CODEX_TASK_TIMEOUT_MS must be a positive integer");
+  }
+
+  return timeoutMs;
+}
+
 export class ShellCodexRunner implements CodexRunner {
   async runCodexTask(
     task: string,
@@ -45,6 +63,8 @@ export class ShellCodexRunner implements CodexRunner {
 
     return new Promise((resolve) => {
       const profile = process.env.CODEX_PROFILE ?? "automation";
+      const timeoutMs = readCodexTaskTimeoutMs();
+      let settled = false;
 
       const child = spawn(
         "codex",
@@ -65,6 +85,22 @@ export class ShellCodexRunner implements CodexRunner {
         },
       );
 
+      const finish = (result: CodexTaskResult): void => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        clearTimeout(timeout);
+        resolve(result);
+      };
+
+      const timeout = setTimeout(() => {
+        logs.push(`[error] Codex task timed out after ${timeoutMs} ms`);
+        child.kill("SIGTERM");
+        finish({ success: false, logs });
+      }, timeoutMs);
+
       child.stdout.on("data", (chunk: Buffer) => {
         appendLogLines(logs, chunk.toString(), "");
       });
@@ -75,11 +111,11 @@ export class ShellCodexRunner implements CodexRunner {
 
       child.on("error", (error: Error) => {
         logs.push(`[error] ${error.message}`);
-        resolve({ success: false, logs });
+        finish({ success: false, logs });
       });
 
       child.on("close", (exitCode) => {
-        resolve({
+        finish({
           success: exitCode === 0,
           logs,
         });

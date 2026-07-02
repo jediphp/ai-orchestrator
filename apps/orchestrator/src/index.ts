@@ -3,6 +3,7 @@ import "dotenv/config";
 import { DefaultPublishService } from "./services/publish.service.js";
 import { InMemoryTaskStore } from "./services/task-store.service.js";
 import { DefaultTaskService } from "./services/task.service.js";
+import { FsWorkspaceCleanupService } from "./services/workspace-cleanup.service.js";
 import {
   DefaultWorkerRunner,
   type WorkerRunnerConfig,
@@ -40,10 +41,12 @@ async function main(): Promise<void> {
   const publishService = new DefaultPublishService({
     workspaceBasePath: workerConfig.workspaceBasePath,
   });
+  const workspaceCleanupService = new FsWorkspaceCleanupService();
   const taskService = new DefaultTaskService(
     taskStore,
     workerRunner,
     publishService,
+    workspaceCleanupService,
     { workspaceBasePath: workerConfig.workspaceBasePath },
   );
   const app = createServer(taskService);
